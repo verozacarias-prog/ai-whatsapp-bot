@@ -17,12 +17,19 @@ func main() {
 
     client := openai.NewClient()
 
+	messages := []openai.ChatCompletionMessageParamUnion{
+		openai.SystemMessage(`Sos el asistente de Peluquería Sol. Clasificá el mensaje del usuario y respondé ÚNICAMENTE con un JSON con este formato exacto:
+	{
+	  "intencion": "consulta_precio" | "reserva_turno" | "cancelacion" | "otro",
+	  "confianza": "alta" | "media" | "baja"
+	}
+	No agregues texto antes ni después del JSON.`),
+		openai.UserMessage("¿cuánto sale cortarse el pelo?"),
+	}
+
     resp, err := client.Chat.Completions.New(context.Background(), openai.ChatCompletionNewParams{
         Model: openai.ChatModelGPT4oMini,
-        Messages: []openai.ChatCompletionMessageParamUnion{
-            openai.SystemMessage("Sos el asistente de Peluquería Sol. Respondé solo sobre turnos, precios y horarios."),
-            openai.UserMessage("¿Cuánto sale el corte de pelo?"),
-        },
+        Messages: messages,
         Temperature: openai.Float(0.2),
     })
     if err != nil {
