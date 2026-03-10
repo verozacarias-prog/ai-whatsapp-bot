@@ -67,7 +67,8 @@ No agregues explicaciones. No salgas del JSON.`),
 func WriteCSVLog(message string, result ClassifyResponse) {
 	csvFile, err := os.OpenFile("logs.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatalf("error al abrir el archivo CSV: %v", err)
+		log.Printf("error al abrir el archivo CSV: %v", err)
+		return
 	}
 	defer csvFile.Close()
 
@@ -82,6 +83,6 @@ func WriteCSVLog(message string, result ClassifyResponse) {
 	csvWriter.Flush()
 	
 	if err := csvWriter.Error(); err != nil {
-		log.Fatalf("error al escribir en el archivo CSV: %v", err)
+		log.Printf("error al escribir en el archivo CSV: %v", err)
 	}
 }
