@@ -1,41 +1,39 @@
 package main
 
 import (
-    "context"
-    "fmt"
-    "log"
-
-    "github.com/openai/openai-go"
-    "github.com/joho/godotenv"
+	"encoding/json"
+	"github.com/joho/godotenv"
+	"log"
+	"net/http"
 )
 
 func main() {
-    // Cargar .env
-    if err := godotenv.Load(); err != nil {
-        log.Fatal("Error cargando .env")
-    }
-
-    client := openai.NewClient()
-
-	messages := []openai.ChatCompletionMessageParamUnion{
-		openai.SystemMessage(`Sos el asistente de Peluquería Sol. Clasificá el mensaje del usuario y respondé ÚNICAMENTE con un JSON con este formato exacto:
-	{
-	  "intencion": "consulta_precio" | "reserva_turno" | "cancelacion" | "otro",
-	  "confianza": "alta" | "media" | "baja"
-	}
-	No agregues texto antes ni después del JSON.`),
-		openai.UserMessage("¿cuánto sale cortarse el pelo?"),
+	// Cargar .env
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error cargando .env")
 	}
 
-    resp, err := client.Chat.Completions.New(context.Background(), openai.ChatCompletionNewParams{
-        Model: openai.ChatModelGPT4oMini,
-        Messages: messages,
-        Temperature: openai.Float(0.2),
-    })
-    if err != nil {
-        log.Fatal(err)
-    }
+	http.HandleFunc("/classify", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "método no permitido", http.StatusMethodNotAllowed)
+			return
+		}
 
-    fmt.Println(resp.Choices[0].Message.Content)
-    fmt.Printf("Tokens usados: %d\n", resp.Usage.TotalTokens)
+		var req ClassifyRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "body inválido", http.StatusBadRequest)
+			return
+		}
+		result, err := Classify(req)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(result)
+	})
+
+	log.Println("Servidor corriendo en :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
