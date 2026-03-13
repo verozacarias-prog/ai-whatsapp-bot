@@ -51,9 +51,14 @@ func main() {
 			return
 		}
 
-		result, err := Respond(req)
+		var result RespondResponse
+		err := withRetry(3, func() error {
+			var e error
+			result, e = Respond(req)
+			return e
+		})
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, "could not process your request, please try again in a few minutes", http.StatusServiceUnavailable)
 			return
 		}
 
