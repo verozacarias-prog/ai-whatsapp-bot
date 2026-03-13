@@ -84,11 +84,13 @@ func Respond(request RespondRequest) (RespondResponse, error) {
 	if err != nil {
 		return RespondResponse{}, fmt.Errorf("error calling API: %w", err)
 	}
+	tokenUsed := classification.TokensUsed + resp.Usage.TotalTokens
+	WriteCSVLog(request.Message, classification.Intent, classification.Confidence, tokenUsed)
 
 	return RespondResponse{
 		Reply:      resp.Choices[0].Message.Content,
 		Intent:     classification.Intent,
 		Confidence: classification.Confidence,
-		TokensUsed: classification.TokensUsed + resp.Usage.TotalTokens,
+		TokensUsed: tokenUsed,
 	}, nil
 }
