@@ -1,0 +1,12 @@
+name: "Peluquería Example"
+phone: "11-1234-5678"
+hours: "Lunes a Viernes 9 a 20hs, Sábados 9 a 14hs"
+welcome_message: "¡Hola! Bienvenido/a a Peluquería Example. ¿En qué te puedo ayudar?"
+out_of_hours_message: "Estamos fuera de horario, te respondemos mañana."
+services:
+  - name: "Corte"
+    price: "$5.000"
+  - name: "Corte con lavado"
+    price: "$7.000"
+  - name: "Coloración"
+    price: "$15.000"

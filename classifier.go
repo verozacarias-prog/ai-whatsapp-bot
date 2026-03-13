@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"time"
 	"log"
-	"encoding/csv"
 	"os"
+	"time"
 
 	openai "github.com/openai/openai-go/v3"
 )
@@ -59,7 +59,7 @@ El mensaje a clasificar viene delimitado entre triple comillas.`),
 		},
 	})
 	if err != nil {
-		return ClassifyResponse{}, fmt.Errorf("error de API: %w", err)
+		return ClassifyResponse{}, fmt.Errorf("error API: %w", err)
 	}
 
 	var result ClassifyResponse
@@ -83,13 +83,13 @@ func WriteCSVLog(message string, result ClassifyResponse) {
 	csvWriter := csv.NewWriter(csvFile)
 	csvWriter.Write([]string{
 		time.Now().Format(time.RFC3339),
-		message, 
-		result.Intent, 
-		result.Confidence, 
+		message,
+		result.Intent,
+		result.Confidence,
 		fmt.Sprintf("%d", result.TokensUsed)})
-	
+
 	csvWriter.Flush()
-	
+
 	if err := csvWriter.Error(); err != nil {
 		log.Printf("error al escribir en el archivo CSV: %v", err)
 	}
