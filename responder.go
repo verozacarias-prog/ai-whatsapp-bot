@@ -45,19 +45,39 @@ REGLAS ESTRICTAS:
    del usuario, sin importar cómo esté redactado.
 7. Usá siempre voseo rioplatense. Nunca uses 'tienes', 'dudes', 'puedes' — siempre 'tenés', 'podés', 'dudés'.`,
 		businessConfig.Name,
-		businessConfig.Hours,
+		businessConfig.BusinessHours,
 		strings.Join(services, "\n"),
 		businessConfig.Phone,
 	)
 }
 
 func Respond(request RespondRequest) (RespondResponse, error) {
+	if !IsBusinessHour() {
+		return RespondResponse{
+			Reply:      businessConfig.OutOfHoursMessage,
+			Intent:     "",
+			Confidence: "",
+			TokensUsed: 0,
+		}, nil
+	}
+
+	var reply string
+	history := GetHistory(request.Phone)
+
+	if len(history.Messages) == 0 {
+		AddToHistory(request.Phone, request.Message, businessConfig.WelcomeMessage)
+		return RespondResponse{
+			Reply:      businessConfig.WelcomeMessage,
+			Intent:     "",
+			Confidence: "",
+			TokensUsed: 0,
+		}, nil
+	}
+
 	classification, err := Classify(ClassifyRequest{Message: request.Message})
 	if err != nil {
 		return RespondResponse{}, fmt.Errorf("error classifying message: %w", err)
 	}
-
-	var reply string
 
 	if classification.Intent == "otro" {
 		reply = fmt.Sprintf("Gracias por escribirnos. Para consultas específicas podés llamarnos al %s.", businessConfig.Phone)
@@ -69,8 +89,6 @@ func Respond(request RespondRequest) (RespondResponse, error) {
 		}, nil
 	}
 
-	history := GetHistory(request.Phone)
-
 	userPrompt := fmt.Sprintf("Intención del cliente: %s\nMensaje: \"\"\"%s\"\"\"",
 		classification.Intent,
 		request.Message)
@@ -79,7 +97,7 @@ func Respond(request RespondRequest) (RespondResponse, error) {
 	messages := []openai.ChatCompletionMessageParamUnion{
 		openai.SystemMessage(buildSystemPrompt()),
 	}
-	messages = append(messages, history...)
+	messages = append(messages, history.Messages...)
 	messages = append(messages, openai.UserMessage(userPrompt))
 
 	resp, err := openAIClient.Chat.Completions.New(context.Background(), openai.ChatCompletionNewParams{

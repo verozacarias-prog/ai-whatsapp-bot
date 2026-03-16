@@ -1,11 +1,13 @@
 # ai-whatsapp-bot
 
-WhatsApp automation bot for small businesses. Classifies customer messages by intent and generates context-aware responses using OpenAI's API.
+WhatsApp automation bot for small businesses. Classifies customer messages by intent, keeps short-term conversation memory per phone number, and generates context-aware responses using OpenAI's API.
 
 ## Features
 
 - **Intent classification** — categorizes incoming messages into: `consulta_precio`, `reserva_turno`, `cancelacion`, `consulta_horario`, `otro`
+- **Conversation memory (per phone, per day)** — keeps the dialog history for each phone number during the day to give more contextual answers
 - **Automated responses** — generates natural language replies based on business configuration
+- **Business hours aware** — uses a structured schedule from `business.yaml` to send a welcome message on first contact and a custom out-of-hours message when the business is closed
 - **Prompt injection protection** — system prompt hardened against common attack vectors
 - **Retry with exponential backoff** — handles OpenAI rate limits and transient errors gracefully
 - **Per-request logging** — logs message, intent, confidence and token usage to CSV
@@ -21,15 +23,16 @@ WhatsApp automation bot for small businesses. Classifies customer messages by in
 
 ```
 ai-whatsapp-bot/
-├── main.go          # HTTP server, route registration
-├── classifier.go    # Intent classification logic
-├── responder.go     # Response generation logic
-├── config.go        # Business config loader (YAML)
-├── retry.go         # Exponential backoff retry utility
-├── utils.go         # CSV logging
-├── negocio.yaml     # Business configuration (per client)
-├── .env             # API keys (not committed)
-└── logs.csv         # Generated at runtime (not committed)
+├── main.go        # HTTP server, route registration
+├── classifier.go  # Intent classification logic
+├── responder.go   # Response generation + conversation memory
+├── conversation.go# In-memory history per phone number
+├── config.go      # Business config loader (YAML)
+├── retry.go       # Exponential backoff retry utility
+├── utils.go       # CSV logging
+├── business.yaml  # Business configuration (per client)
+├── .env           # API keys (not committed)
+└── logs.csv       # Generated at runtime (not committed)
 ```
 
 ## Endpoints
@@ -56,11 +59,14 @@ Classifies a customer message by intent.
 
 ### `POST /respond`
 
-Classifies the message and generates a natural language response based on business configuration.
+Classifies the message, uses the phone number to retrieve the recent conversation history for that customer, and generates a natural language response based on business configuration and context.
 
 **Request**
 ```json
-{ "message": "cuánto sale el corte con lavado?" }
+{
+  "message": "cuánto sale el corte con lavado?",
+  "phone": "+5491112345678"
+}
 ```
 
 **Response**
@@ -72,6 +78,12 @@ Classifies the message and generates a natural language response based on busine
   "tokens_used": 519
 }
 ```
+
+Behavior:
+
+- **First message of the day for a phone**: the API responds with the configured `welcome_message` from `business.yaml` and does not call OpenAI yet.
+- **Outside business hours**: the API always responds with the configured `out_of_hours_message` from `business.yaml` and skips the OpenAI call (no tokens consumed).
+- **Within business hours with history**: the API uses the stored history for that phone (only today’s messages) plus the latest classified intent to generate the answer.
 
 ## Setup
 
@@ -88,20 +100,26 @@ OPENAI_API_KEY=your-api-key-here
 
 **3. Configure the business**
 
-Edit `negocio.yaml` with the client's data:
+Edit `business.yaml` with the client's data:
 ```yaml
-nombre: "Peluquería Example"
-telefono: "11-1234-5678"
-horarios: "Lunes a Viernes 9 a 20hs, Sábados 9 a 14hs"
-mensaje_bienvenida: "¡Hola! ¿En qué te puedo ayudar?"
-mensaje_fuera_horario: "Estamos fuera de horario, te respondemos mañana."
-servicios:
-  - nombre: "Corte"
-    precio: "$5.000"
-  - nombre: "Corte con lavado"
-    precio: "$7.000"
-  - nombre: "Coloración"
-    precio: "$15.000"
+name: "Peluquería Example"
+phone: "11-1234-5678"
+business_hours:
+  - days: [1, 2, 3, 4, 5]  # 0=domingo, 6=sábado
+    open: "09:00"
+    close: "20:00"
+  - days: [6]
+    open: "09:00"
+    close: "14:00"
+welcome_message: "¡Hola! Bienvenido/a a Peluquería Example. ¿En qué te puedo ayudar?"
+out_of_hours_message: "Estamos fuera de horario, te respondemos mañana."
+services:
+  - name: "Corte"
+    price: "$5.000"
+  - name: "Corte con lavado"
+    price: "$7.000"
+  - name: "Coloración"
+    price: "$15.000"
 ```
 
 **4. Run**
@@ -147,7 +165,7 @@ At ~550 tokens per request with `gpt-4o-mini`:
 
 ## Roadmap
 
-- [ ] Conversation memory (multi-turn history)
+- [x] Conversation memory (multi-turn history per phone, resets daily)
 - [ ] n8n integration via webhook
 - [ ] WhatsApp connection via Meta API
 - [ ] RAG over business catalog (dynamic pricing)

@@ -1,6 +1,12 @@
 name: "Peluquería Example"
 phone: "11-1234-5678"
-hours: "Lunes a Viernes 9 a 20hs, Sábados 9 a 14hs"
+business_hours:
+  - days: [1, 2, 3, 4, 5]  # 0=domingo, 6=sábado
+    open: "09:00"
+    close: "20:00"
+  - days: [6]
+    open: "09:00"
+    close: "14:00"
 welcome_message: "¡Hola! Bienvenido/a a Peluquería Example. ¿En qué te puedo ayudar?"
 out_of_hours_message: "Estamos fuera de horario, te respondemos mañana."
 services:
