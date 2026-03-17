@@ -1,0 +1,93 @@
+{
+  "name": "WhatsApp http bot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-bot",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        32
+      ],
+      "id": "dd496364-af4d-4ec0-abba-17e5efb9517d",
+      "name": "Webhook",
+      "webhookId": "9f658c5d-7c3a-4129-9c04-a6642dc9cd9d"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wintrily-pterygial-talisha.ngrok-free.dev/respond",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\"Content-Type\":\"application/json\"}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"message\": \"{{ $json.body.message }}\",\n  \"phone\": \"{{ $json.body.phone }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        32
+      ],
+      "id": "7751a79e-cbbf-4060-9dd3-49b7108827bc",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        416,
+        32
+      ],
+      "id": "0a829022-817f-449a-b0ed-279cfe3363fc",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b2af40fc-f257-4f12-a218-c7a318c52f03",
+  "meta": {
+    "instanceId": "90d0cd775b8b317d93028fa9dac1a8444d7abab6b6d67d7d742eaaaba2878ec3"
+  },
+  "id": "sHiUYoV3IzefknUz",
+  "tags": []
+}
