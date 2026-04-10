@@ -1,7 +1,7 @@
 name: "Peluquería Example"
 phone: "11-1234-5678"
 business_hours:
-  - days: [1, 2, 3, 4, 5]  # 0=domingo, 6=sábado
+  - days: [1, 2, 3, 4, 5]
     open: "09:00"
     close: "20:00"
   - days: [6]
@@ -9,10 +9,32 @@ business_hours:
     close: "14:00"
 welcome_message: "¡Hola! Bienvenido/a a Peluquería Example. ¿En qué te puedo ayudar?"
 out_of_hours_message: "Estamos fuera de horario, te respondemos mañana."
+is_academy: true
+payment_methods:
+  - "efectivo"
+  - "transferencia/QR"
+  - "crédito"
+staff:
+  professionals: 5
+  students: 2
 services:
   - name: "Corte"
     price: "$5.000"
+    student_price: "$3.000"
+    duration_minutes:
+      professional: 30
+      student: 45
   - name: "Corte con lavado"
     price: "$7.000"
+    student_price: "$4.500"
+    duration_minutes:
+      professional: 45
+      student: 60
   - name: "Coloración"
     price: "$15.000"
+    student_price: "$10.000"
+    duration_minutes:
+      professional: 90
+      student: 120
+appointment:
+  reminder_hours: 24

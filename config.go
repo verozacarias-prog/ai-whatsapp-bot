@@ -8,9 +8,16 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type DurationMinutes struct {
+	Professional int `yaml:"professional"`
+	Student      int `yaml:"student"`
+}
+
 type Service struct {
-	Name  string `yaml:"name"`
-	Price string `yaml:"price"`
+	Name            string          `yaml:"name"`
+	Price           string          `yaml:"price"`
+	StudentPrice    string          `yaml:"student_price"`
+	DurationMinutes DurationMinutes `yaml:"duration_minutes"`
 }
 
 type BusinessHour struct {
@@ -19,13 +26,26 @@ type BusinessHour struct {
 	Close string `yaml:"close"`
 }
 
+type Staff struct {
+	Professionals int `yaml:"professionals"`
+	Students      int `yaml:"students"`
+}
+
+type Appointment struct {
+	ReminderHours int `yaml:"reminder_hours"`
+}
+
 type BusinessConfig struct {
 	Name              string         `yaml:"name"`
 	Phone             string         `yaml:"phone"`
 	BusinessHours     []BusinessHour `yaml:"business_hours"`
 	WelcomeMessage    string         `yaml:"welcome_message"`
 	OutOfHoursMessage string         `yaml:"out_of_hours_message"`
+	IsAcademy         bool           `yaml:"is_academy"`
+	PaymentMethods    []string       `yaml:"payment_methods"`
+	Staff             Staff          `yaml:"staff"`
 	Services          []Service      `yaml:"services"`
+	Appointment       Appointment    `yaml:"appointment"`
 }
 
 var businessConfig BusinessConfig
